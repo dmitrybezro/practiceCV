@@ -18,7 +18,9 @@ public class LabOneCV {
 
         Mat borderImage = labOneCV.borderSelection(currentImage);
 
-        Mat resultContourRed = labOneCV.contourReduction(borderImage);
+        Mat deleteSmallBorders = labOneCV.deleteSmallBorders(borderImage);
+
+        Mat resultContourRed = labOneCV.contourReduction(deleteSmallBorders);
 
         labOneCV.dilate(resultContourRed);
 
@@ -95,6 +97,19 @@ public class LabOneCV {
         Imgproc.Canny(originalImage,result, 50, 100);
         saveImage(result, "border");
         return result;
+    }
+
+    public Mat deleteSmallBorders(Mat image){
+        //  Opening
+        Mat resultOpen = new Mat(image.rows(), image.cols(), image.type());
+        Imgproc.morphologyEx(image, resultOpen, Imgproc.MORPH_OPEN,Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new Size(2,2)));
+
+        //  Closing
+        Mat resultClose = new Mat();
+        Imgproc.morphologyEx(resultOpen, resultClose, Imgproc.MORPH_CLOSE,Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2,2)));
+
+        saveImage(resultClose, "deleteSmallBorders");
+        return resultClose;
     }
 
     public Mat contourReduction(Mat image){
