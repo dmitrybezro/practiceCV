@@ -6,6 +6,9 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.objdetect.Objdetect;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LabOneCV {
     static {System.loadLibrary(Core.NATIVE_LIBRARY_NAME);}
     public static void main(String[] args) {
@@ -100,16 +103,22 @@ public class LabOneCV {
     }
 
     public Mat deleteSmallBorders(Mat image){
-        //  Opening
-        Mat resultOpen = new Mat(image.rows(), image.cols(), image.type());
-        Imgproc.morphologyEx(image, resultOpen, Imgproc.MORPH_OPEN,Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new Size(2,2)));
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_NONE);
 
-        //  Closing
-        Mat resultClose = new Mat();
-        Imgproc.morphologyEx(resultOpen, resultClose, Imgproc.MORPH_CLOSE,Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2,2)));
+        List<MatOfPoint> smallContours = new ArrayList<>();
+        for(int i = 0; i < contours.size(); i++){
+            MatOfPoint cont = contours.get(i);
+            if(cont.height() < 10 && cont.width() < 10){
+                smallContours.add(cont);
+            }
+        }
 
-        saveImage(resultClose, "deleteSmallBorders");
-        return resultClose;
+        Imgproc.drawContours(image, smallContours, -1, new Scalar(0, 0, 0));
+
+        saveImage(image, "deleteSmallBorders");
+        return image;
     }
 
     public Mat contourReduction(Mat image){
@@ -121,7 +130,7 @@ public class LabOneCV {
 
     public void dilate(Mat image){
         Mat result = new Mat();
-        Imgproc.dilate(image, result, Imgproc.getStructuringElement(Imgproc.MORPH_DILATE, new Size(5,5)));
+        Imgproc.dilate(image, result, Imgproc.getStructuringElement(Imgproc.MORPH_DILATE, new Size(3,3)));
         saveImage(result, "dilate");
     }
 
